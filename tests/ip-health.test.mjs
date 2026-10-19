@@ -5,7 +5,32 @@ import worker from "../.worker-test/index.js";
 const request = (query = "", headers = {}) =>
   new Request(`https://example.com/api/ip/health${query}`, { headers });
 
-test("health API uses the caller IP, preserves false flags and returns uncached JSON", async (t) => {
+function assertSummaryFields(data) {
+  assert.deepEqual(
+    Object.keys(data).sort(),
+    [
+      "ip",
+      "checked_at",
+      "score",
+      "status",
+      "country",
+      "country_code",
+      "region",
+      "city",
+      "isp",
+      "asn",
+      "location",
+    ].sort(),
+  );
+  assert.deepEqual(
+    Object.keys(data.location).sort(),
+    ["country", "country_code", "region", "city", "isp"].sort(),
+  );
+  for (const [key, value] of Object.entries(data.location))
+    assert.equal(data[key], value);
+}
+
+test("health API returns only the requested summary fields as uncached JSON", async (t) => {
   t.mock.method(globalThis, "fetch", async (url) => {
     assert.equal(url, "https://ip.net.coffee/api/ip/lookup/1.1.1.1");
     return Response.json({ ip: "1.1.1.1", trust_score: 75, is_vpn: false });
@@ -19,9 +44,7 @@ test("health API uses the caller IP, preserves false flags and returns uncached 
   const data = await response.json();
   assert.equal(data.score, 75);
   assert.equal(data.status, "good");
-  assert.equal(data.source, undefined);
-  assert.equal(data.flags.vpn, false);
-  assert.equal(data.flags.tor, null);
+  assertSummaryFields(data);
 });
 
 test("health score boundaries and unknown values match the UI", async (t) => {
@@ -144,15 +167,10 @@ test("curl root returns caller location and honest unknown reputation when the p
   assert.equal(data.ip, "1.1.1.1");
   assert.equal(data.location.country_code, "AU");
   assert.equal(data.location.region, "Queensland");
-  assert.equal(data.asn_details.number, 13335);
-  assert.equal(data.reputation.available, false);
+  assert.equal(data.asn, 13335);
   assert.equal(data.score, null);
   assert.equal(data.status, "unknown");
-  assert.equal(data.ip_profile.available, false);
-  assert.equal(data.ip_profile.threats, null);
-  assert.ok(Object.values(data.flags).every((flag) => flag === null));
-  assert.deepEqual(data.warnings, ["reputation_provider_unavailable"]);
-  assert.equal(data.data_sources.location, "Cloudflare request.cf");
+  assertSummaryFields(data);
   assert.equal(calls, 1);
 });
 
@@ -184,8 +202,9 @@ test("explicit IP fallback uses its own geolocation and never the visitor metada
   assert.equal(data.ip, "8.8.8.8");
   assert.equal(data.location.country_code, "US");
   assert.equal(data.asn, 15169);
-  assert.equal(data.data_sources.location, "ipwho.is");
-  assert.equal(data.reputation.available, false);
+  assert.equal(data.score, null);
+  assert.equal(data.status, "unknown");
+  assertSummaryFields(data);
 });
 
 test("fallback rejects mismatched addresses and ignores local Cloudflare placeholders", async (t) => {

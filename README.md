@@ -86,13 +86,13 @@ curl -fsS 'https://io0.cc/api/ip/health?ip=2606:4700:4700::1111&format=text'
 
 自部署时替换域名。本地开发使用 `http://127.0.0.1:8787`，必须指定 `ip`。省略 `ip` 时使用 Cloudflare 识别的本次请求出口；经过代理时会查询代理出口。
 
-返回 `ip`、`checked_at`、`score`、`status`、位置、ISP、ASN 和 `flags`（住宅、数据中心、移动网络、VPN、代理、Tor、爬虫、滥用标记）。信誉分范围 0–100，越高越好；与网页相同，75–100 为 `good`、45–74 为 `moderate`、低于 45 为 `poor`。缺失或无效分数返回 `score: null`、`status: "unknown"`；缺失标记返回 `null`，不视为 `false`。
+JSON 仅返回 `ip`、`checked_at`、`score`、`status`、`country`、`country_code`、`region`、`city`、`isp`、`asn` 和 `location`。`location` 将国家、国家代码、省州、城市和运营商字段分组，值与顶层字段一致。信誉分范围 0–100，越高越好；75–100 为 `good`、45–74 为 `moderate`、低于 45 为 `poor`。缺失或无效分数返回 `score: null`、`status: "unknown"`。
 
 `format` 支持 `json`（默认）和 `text`。错误始终返回 JSON `{ "error": "…" }`：无效参数为 400、限流为 429、无法识别访客 IP 为 503、数据源故障或地址不匹配为 502。接口沿用现有请求限流，响应不缓存。健康度仅表示第三方 IP 信誉，不包含终端网络测速、浏览器检测或 AI 账号可用性判断。
 
-根地址根据请求头返回内容：浏览器照常获取网页；curl 默认的 User-Agent 或 `Accept: application/json` 会得到 JSON。JSON 包含 IP、国家/地区/城市、运营商、信誉分与状态、IP 类型和风险画像、注册国家、CIDR、反向 DNS、ASN 组织与类型等字段。国家、区域和风险标记由 Net.Coffee 提供，数据缺失时字段为 `null`；信誉分仅是数据源的参考值。
+根地址根据请求头返回内容：浏览器照常获取网页；curl 默认的 User-Agent 或 `Accept: application/json` 会得到 JSON。`checked_at` 是 Worker 生成响应时的时间，不是位置数据库更新时间。
 
-Net.Coffee 拒绝请求或暂不可用时，接口优先使用 Cloudflare 的本次访客位置与 ASN；查询指定 IP 时使用备用归属地数据源，并核对返回地址。此时仍返回可用的位置数据，`score` 为 `null`、`status` 为 `unknown`，`reputation.available` 与 `ip_profile.available` 为 `false`，`warnings` 包含 `reputation_provider_unavailable`。缺失的风险标记保持 `null`，不表示没有风险；`data_sources` 标明实际使用的数据源。只有所有适用数据源都无法提供结果时才返回错误。
+位置与信誉数据优先取自 Net.Coffee。该服务拒绝请求或暂不可用时，当前访客的 `ip` 来自 Cloudflare 的 `CF-Connecting-IP`，国家、省州、城市、ASN 来自 `request.cf`，`isp` 使用其中的 `asOrganization`（ASN 组织名）。查询其他指定 IP 时，使用 ipwho.is / ip.sb 备用归属地数据源，并核对返回地址。降级时 `score` 为 `null`、`status` 为 `unknown`；不会用位置或 ASN 推算信誉分。没有可用数据源时返回错误。
 
 ## 界面预览
 
