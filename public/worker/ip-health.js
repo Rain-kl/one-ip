@@ -1,4 +1,38 @@
-import { HttpError, json, publicIp, upstream } from "./http.js";
+import { cfGeo, lookupGeo } from "./geo.js";
+import { HttpError, publicIp, upstream } from "./http.js";
+
+async function fallbackLocation(ip, request, env) {
+  if (env.LOCAL_DEV !== "true") {
+    const visitor = cfGeo(request);
+    try {
+      if (
+        publicIp(visitor.ip) === ip &&
+        [
+          visitor.country,
+          visitor.region,
+          visitor.city,
+          visitor.isp,
+          visitor.asn,
+        ].some((value) => value !== undefined && value !== null && value !== "")
+      )
+        return visitor;
+    } catch {
+      // Only use Cloudflare metadata when it belongs to the requested IP.
+    }
+  }
+  try {
+    const { sources } = await lookupGeo(ip);
+    return sources.find((geo) => {
+      try {
+        return publicIp(geo.ip) === ip;
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return undefined;
+  }
+}
 
 export async function ipHealth(request, env) {
   const url = new URL(request.url);
@@ -15,10 +49,30 @@ export async function ipHealth(request, env) {
       "无法获取真实访客 IP，请指定 ip 参数或部署 Worker 后检测",
     );
   const ip = publicIp(target ?? request.headers.get("CF-Connecting-IP"));
-  const data = await upstream(
-    `https://ip.net.coffee/api/ip/lookup/${encodeURIComponent(ip)}`,
-    { redirect: "manual" },
-  );
+  let data;
+  let profileAvailable = true;
+  let locationSource = "Net.Coffee";
+  try {
+    data = await upstream(
+      `https://ip.net.coffee/api/ip/lookup/${encodeURIComponent(ip)}`,
+      { redirect: "manual", headers: { Accept: "application/json" } },
+    );
+  } catch (error) {
+    const geo = await fallbackLocation(ip, request, env);
+    if (!geo) throw error;
+    profileAvailable = false;
+    locationSource = geo.source;
+    data = {
+      ip,
+      country: geo.country,
+      countryCode: geo.country_code,
+      region: geo.region,
+      city: geo.city,
+      isp: geo.isp,
+      asn: geo.asn,
+      asOrganization: geo.isp,
+    };
+  }
   let returnedIp;
   try {
     returnedIp = publicIp(data?.ip);
@@ -103,11 +157,18 @@ export async function ipHealth(request, env) {
     asn,
     location,
     reputation: {
+      available: score !== null,
       score,
       status: reputationStatus,
       abuser_score: string(data.abuser_score),
+      unavailable_reason: !profileAvailable
+        ? "reputation_provider_unavailable"
+        : score === null
+          ? "score_not_provided"
+          : null,
     },
     ip_profile: {
+      available: profileAvailable,
       classification,
       registration: {
         country: string(data.registered_country),
@@ -127,7 +188,7 @@ export async function ipHealth(request, env) {
       datacenter_name: string(data.datacenter_name),
       cidr: string(data.cidr),
       reverse_dns: string(data.rdns),
-      threats,
+      threats: profileAvailable ? threats : null,
       flags,
     },
     asn_details: {
@@ -141,8 +202,22 @@ export async function ipHealth(request, env) {
       estimated_capacity: string(data.asn_tbps),
     },
     flags,
+    data_sources: {
+      location: locationSource,
+      reputation: score === null ? null : "Net.Coffee",
+      ip_profile: profileAvailable ? "Net.Coffee" : null,
+    },
+    warnings: profileAvailable ? [] : ["reputation_provider_unavailable"],
   };
-  if (format === "json") return json(result);
+  if (format === "json") {
+    return new Response(`${JSON.stringify(result, null, 2)}\n`, {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }
   // Strip control characters from provider text before displaying it in a terminal.
   const display = (value) =>
     // eslint-disable-next-line no-control-regex -- Prevent terminal escape sequences in upstream values.
@@ -157,6 +232,9 @@ export async function ipHealth(request, env) {
     ["isp", result.isp],
     ["score", result.score],
     ["status", result.status],
+    ["reputation_available", result.reputation.available],
+    ["reputation_unavailable_reason", result.reputation.unavailable_reason],
+    ["ip_profile_available", result.ip_profile.available],
     ["classification", result.ip_profile.classification],
     ["registered_country", result.ip_profile.registration.country],
     ["registered_country_code", result.ip_profile.registration.country_code],

@@ -92,6 +92,8 @@ curl -fsS 'https://io0.cc/api/ip/health?ip=2606:4700:4700::1111&format=text'
 
 根地址根据请求头返回内容：浏览器照常获取网页；curl 默认的 User-Agent 或 `Accept: application/json` 会得到 JSON。JSON 包含 IP、国家/地区/城市、运营商、信誉分与状态、IP 类型和风险画像、注册国家、CIDR、反向 DNS、ASN 组织与类型等字段。国家、区域和风险标记由 Net.Coffee 提供，数据缺失时字段为 `null`；信誉分仅是数据源的参考值。
 
+Net.Coffee 拒绝请求或暂不可用时，接口优先使用 Cloudflare 的本次访客位置与 ASN；查询指定 IP 时使用备用归属地数据源，并核对返回地址。此时仍返回可用的位置数据，`score` 为 `null`、`status` 为 `unknown`，`reputation.available` 与 `ip_profile.available` 为 `false`，`warnings` 包含 `reputation_provider_unavailable`。缺失的风险标记保持 `null`，不表示没有风险；`data_sources` 标明实际使用的数据源。只有所有适用数据源都无法提供结果时才返回错误。
+
 ## 界面预览
 
 截图遮盖了 IP、具体位置及运营商 / ASN，数值不是实时结果。
