@@ -66,6 +66,13 @@ Workers Builds 会在 `main` 收到提交时构建和部署。上方按钮使用
 部署此版本后，可通过 `GET /api/ip/health` 查询 IP 健康度，无需 API Key。
 
 ```bash
+# curl 访问网站根地址时返回 JSON；浏览器访问同一地址仍显示网页
+curl -fsS 'https://io0.cc/'
+
+# 显式声明需要 JSON，或查询指定公网 IP
+curl -fsS -H 'Accept: application/json' 'https://io0.cc/'
+curl -fsS 'https://io0.cc/?ip=1.1.1.1'
+
 # 当前请求的公网出口 IP，终端文本
 curl -fsS 'https://io0.cc/api/ip/health?format=text'
 
@@ -82,6 +89,8 @@ curl -fsS 'https://io0.cc/api/ip/health?ip=2606:4700:4700::1111&format=text'
 返回 `ip`、`checked_at`、`score`、`status`、位置、ISP、ASN 和 `flags`（住宅、数据中心、移动网络、VPN、代理、Tor、爬虫、滥用标记）。信誉分范围 0–100，越高越好；与网页相同，75–100 为 `good`、45–74 为 `moderate`、低于 45 为 `poor`。缺失或无效分数返回 `score: null`、`status: "unknown"`；缺失标记返回 `null`，不视为 `false`。
 
 `format` 支持 `json`（默认）和 `text`。错误始终返回 JSON `{ "error": "…" }`：无效参数为 400、限流为 429、无法识别访客 IP 为 503、数据源故障或地址不匹配为 502。接口沿用现有请求限流，响应不缓存。健康度仅表示第三方 IP 信誉，不包含终端网络测速、浏览器检测或 AI 账号可用性判断。
+
+根地址根据请求头返回内容：浏览器照常获取网页；curl 默认的 User-Agent 或 `Accept: application/json` 会得到 JSON。JSON 包含 IP、国家/地区/城市、运营商、信誉分与状态、IP 类型和风险画像、注册国家、CIDR、反向 DNS、ASN 组织与类型等字段。国家、区域和风险标记由 Net.Coffee 提供，数据缺失时字段为 `null`；信誉分仅是数据源的参考值。
 
 ## 界面预览
 

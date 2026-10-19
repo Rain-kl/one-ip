@@ -33,35 +33,114 @@ export async function ipHealth(request, env) {
     data.trust_score <= 100
       ? data.trust_score
       : null;
+  const reputationStatus =
+    score === null
+      ? "unknown"
+      : score >= 75
+        ? "good"
+        : score >= 45
+          ? "moderate"
+          : "poor";
   const flag = (value) => (typeof value === "boolean" ? value : null);
   const string = (value) => (typeof value === "string" ? value : null);
+  const integer = (value) => (Number.isInteger(value) ? value : null);
+  const flags = {
+    residential: flag(data.isResidential),
+    datacenter: flag(data.is_datacenter),
+    mobile: flag(data.is_mobile),
+    vpn: flag(data.is_vpn),
+    proxy: flag(data.is_proxy),
+    tor: flag(data.is_tor),
+    crawler: flag(data.is_crawler),
+    abuser: flag(data.is_abuser),
+    bogon: flag(data.is_bogon),
+  };
+  const typeConflict = flags.residential === true && flags.datacenter === true;
+  const classification =
+    data.is_public_service === true
+      ? "public_service"
+      : typeConflict
+        ? "conflicting"
+        : flags.mobile
+          ? "mobile"
+          : flags.residential
+            ? "residential"
+            : flags.datacenter
+              ? "datacenter"
+              : "unknown";
+  const registeredCountryCode = string(data.registered_country_code);
+  const countryCode = string(data.countryCode);
+  const threats = Array.isArray(data.intelligence?.threats)
+    ? data.intelligence.threats.flatMap((threat) => {
+        if (typeof threat === "string")
+          return threat.trim()
+            ? [{ label: threat.trim(), severity: null }]
+            : [];
+        if (threat && typeof threat.label === "string" && threat.label.trim())
+          return [
+            {
+              label: threat.label.trim(),
+              severity: string(threat.severity),
+            },
+          ];
+        return [];
+      })
+    : [];
+  const location = {
+    country: string(data.country),
+    country_code: countryCode,
+    region: string(data.region),
+    city: string(data.city),
+    isp: string(data.isp),
+  };
+  const asn = integer(data.asn);
   const result = {
     ip,
     checked_at: new Date().toISOString(),
     score,
-    status:
-      score === null
-        ? "unknown"
-        : score >= 75
-          ? "good"
-          : score >= 45
-            ? "moderate"
-            : "poor",
-    country: string(data.country),
-    region: string(data.region),
-    city: string(data.city),
-    isp: string(data.isp),
-    asn: Number.isInteger(data.asn) ? data.asn : null,
-    flags: {
-      residential: flag(data.isResidential),
-      datacenter: flag(data.is_datacenter),
-      mobile: flag(data.is_mobile),
-      vpn: flag(data.is_vpn),
-      proxy: flag(data.is_proxy),
-      tor: flag(data.is_tor),
-      crawler: flag(data.is_crawler),
-      abuser: flag(data.is_abuser),
+    status: reputationStatus,
+    ...location,
+    asn,
+    location,
+    reputation: {
+      score,
+      status: reputationStatus,
+      abuser_score: string(data.abuser_score),
     },
+    ip_profile: {
+      classification,
+      registration: {
+        country: string(data.registered_country),
+        country_code: registeredCountryCode,
+        location_matches_registration:
+          data.is_public_service === true ||
+          !countryCode ||
+          !registeredCountryCode
+            ? null
+            : countryCode.toUpperCase() === registeredCountryCode.toUpperCase(),
+      },
+      public_service: flag(data.is_public_service),
+      company: {
+        name: string(data.company_name),
+        type: string(data.company_type),
+      },
+      datacenter_name: string(data.datacenter_name),
+      cidr: string(data.cidr),
+      reverse_dns: string(data.rdns),
+      threats,
+      flags,
+    },
+    asn_details: {
+      number: asn,
+      organization: string(data.asOrganization),
+      name: string(data.asname),
+      kind: string(data.asn_kind),
+      rpki_status: string(data.rpki_status),
+      ipv4_count: integer(data.asn_ipv4_count),
+      allocated: string(data.asn_allocated),
+      estimated_capacity: string(data.asn_tbps),
+    },
+    flags,
   };
   if (format === "json") return json(result);
   // Strip control characters from provider text before displaying it in a terminal.
@@ -69,10 +148,24 @@ export async function ipHealth(request, env) {
     // eslint-disable-next-line no-control-regex -- Prevent terminal escape sequences in upstream values.
     String(value ?? "unknown").replace(/[\u0000-\u001f\u007f-\u009f]/g, " ");
   const lines = [
-    "One IP — IP health",
-    ...Object.entries(result).filter(([key]) => key !== "flags"),
+    ["ip", result.ip],
+    ["checked_at", result.checked_at],
+    ["country", result.country],
+    ["country_code", result.location.country_code],
+    ["region", result.region],
+    ["city", result.city],
+    ["isp", result.isp],
+    ["score", result.score],
+    ["status", result.status],
+    ["classification", result.ip_profile.classification],
+    ["registered_country", result.ip_profile.registration.country],
+    ["registered_country_code", result.ip_profile.registration.country_code],
+    ["cidr", result.ip_profile.cidr],
+    ["reverse_dns", result.ip_profile.reverse_dns],
+    ["asn", result.asn],
+    ["asn_organization", result.asn_details.organization],
     ...Object.entries(result.flags),
-  ].map((row) => (Array.isArray(row) ? `${row[0]}: ${display(row[1])}` : row));
+  ].map(([key, value]) => `${key}: ${display(value)}`);
   return new Response(`${lines.join("\n")}\n`, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",

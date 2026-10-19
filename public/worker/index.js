@@ -15,10 +15,23 @@ import { lookupSubdomains } from "./subdomains.js";
 import { tlsFingerprint } from "./tls-fingerprint.js";
 import { lookupRegistration } from "./whois.js";
 
+function requestsJson(request) {
+  const accept = request.headers.get("Accept") ?? "";
+  const userAgent = request.headers.get("User-Agent") ?? "";
+  return (
+    /(?:^|\s)curl\/\d/i.test(userAgent) ||
+    accept
+      .split(",")
+      .some((type) => /^\s*application\/json(?:\s*;|\s*$)/i.test(type))
+  );
+}
+
 /** @type {ExportedHandler<Env>} */
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/" && requestsJson(request))
+      url.pathname = "/api/ip/health";
     if (url.pathname === "/worker" || url.pathname.startsWith("/worker/"))
       return new Response("Not found", { status: 404 });
     if (!url.pathname.startsWith("/api/")) {

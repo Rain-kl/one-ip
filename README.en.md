@@ -30,18 +30,25 @@ Click the button below for one-click deployment to Cloudflare.
 After deploying this version, use `GET /api/ip/health` without an API key:
 
 ```bash
+# curl on the site root returns JSON; browsers still load the web page
+curl -fsS 'https://io0.cc/'
+
+# Explicit JSON negotiation or a specific public IP
+curl -fsS -H 'Accept: application/json' 'https://io0.cc/'
+curl -fsS 'https://io0.cc/?ip=1.1.1.1'
+
 # Current request's public egress IP, readable terminal output
-curl -fsS 'https://ip.huzhihui.com/api/ip/health?format=text'
+curl -fsS 'https://io0.cc/api/ip/health?format=text'
 # JSON (default)
-curl -fsS 'https://ip.huzhihui.com/api/ip/health'
+curl -fsS 'https://io0.cc/api/ip/health'
 # Explicit public IPv4 or IPv6
-curl -fsS 'https://ip.huzhihui.com/api/ip/health?ip=1.1.1.1'
-curl -fsS 'https://ip.huzhihui.com/api/ip/health?ip=2606:4700:4700::1111&format=text'
+curl -fsS 'https://io0.cc/api/ip/health?ip=1.1.1.1'
+curl -fsS 'https://io0.cc/api/ip/health?ip=2606:4700:4700::1111&format=text'
 ```
 
 Replace the domain for your deployment. Local development uses `http://127.0.0.1:8787` and requires `ip`. Without `ip`, the API uses the caller address identified by Cloudflare; a proxy changes that egress address.
 
-Returns `ip`, `checked_at`, `score`, `status`, location, ISP, ASN and `flags` (residential, datacenter, mobile, VPN, proxy, Tor, crawler, abuser). The trust score ranges from 0 to 100, higher is better. Matching the UI, 75–100 is `good`, 45–74 is `moderate`, below 45 is `poor`. Missing or invalid scores yield `score: null` and `status: "unknown"`; missing flags are `null`, not `false`.
+The root URL returns JSON for curl's default User-Agent or `Accept: application/json`; a browser request continues to return the page. The JSON includes the caller IP, country and region, reputation score, IP classification and risk flags, registration country, network range, and ASN details. Returns `ip`, `checked_at`, `location`, `reputation`, `ip_profile`, `asn`, `asn_details` and compatibility fields such as `score`, `status`, and `flags` (residential, datacenter, mobile, VPN, proxy, Tor, crawler, abuser). The trust score ranges from 0 to 100, higher is better. Matching the UI, 75–100 is `good`, 45–74 is `moderate`, below 45 is `poor`. Missing or invalid scores yield `score: null` and `status: "unknown"`; missing flags are `null`, not `false`.
 
 `format` accepts `json` (default) or `text`. Errors always use JSON `{ "error": "…" }`: 400 for invalid input, 429 for rate limits, 503 when the caller IP is unavailable, and 502 for provider failures or mismatched IPs. Existing API rate limits apply; responses are not cached. This reports third-party IP reputation, not terminal speed tests, browser diagnostics or AI account availability.
 
