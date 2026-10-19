@@ -4575,7 +4575,7 @@ body {
   }
 }
 
-/* OU PING brand layer: a compact network console with restrained data color. */
+/* One Ping brand layer: a compact network console with restrained data color. */
 :root,
 :root[data-color] {
   --background: #f3f6f4;

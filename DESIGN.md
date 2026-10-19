@@ -1,5 +1,5 @@
 ---
-name: OU PING
+name: One Ping
 description: A restrained network signal desk for split-route and IP diagnostics.
 colors:
   signal-green: "#087f5b"
@@ -69,13 +69,13 @@ components:
     padding: "16px"
 ---
 
-# Design System: OU PING
+# Design System: One Ping
 
 ## Overview
 
 **Creative North Star: "The Signal Desk"**
 
-OU PING is a quiet network operations surface: cool paper, precise rules, compact evidence, and green reserved for verified signal. The wide-eyed cat mark provides the personality; the interface itself remains restrained so changing IP, location, latency, and risk data are easy to compare.
+One Ping is a quiet network operations surface: cool paper, precise rules, compact evidence, and green reserved for verified signal. The original blue IP mark identifies the product; the interface itself remains restrained so changing IP, location, latency, and risk data are easy to compare.
 
 The design favors unframed page hierarchy followed by bounded diagnostic panels. It avoids decorative glow, glass, oversized type, and promotional composition. Uncertainty remains visible instead of being styled into confidence.
 
@@ -84,7 +84,7 @@ The design favors unframed page hierarchy followed by bounded diagnostic panels.
 - Dense, scan-first diagnostic panels with clear row alignment.
 - Cool neutral surfaces with sparse signal green, amber, cyan, and red.
 - An 8px maximum component radius and restrained ambient depth.
-- The OU cat mark paired with a compact bilingual lockup.
+- The original IP mark paired with a compact brand lockup.
 - Light and dark modes that preserve the same information hierarchy.
 
 ## Colors
@@ -193,4 +193,4 @@ On desktop, trust score, attributes, and risk flags occupy three ruled columns. 
 - **Don't** fabricate example IPs, unlock claims, native-IP labels, safety verdicts, or latency values in the product UI.
 - **Don't** use gradients, glass, large decorative type, colored side stripes, or nested cards as a substitute for hierarchy.
 - **Don't** treat missing risk data as a clean result.
-- **Don't** hide the OU PING name or cat mark behind generic tool branding.
+- **Don't** hide the One Ping name or IP mark behind generic tool branding.

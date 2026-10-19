@@ -73,7 +73,7 @@
     "vite": "^8.2.2",
     "wrangler": "^4.130.0"
   },
-  "description": "OU PING split-route and IP diagnostics on Cloudflare Workers",
+  "description": "One Ping split-route and IP diagnostics on Cloudflare Workers",
   "keywords": [
     "react",
     "vite",

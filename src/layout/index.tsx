@@ -52,11 +52,10 @@ function BrandLockup({ compact = false }: { compact?: boolean }) {
   return (
     <span className="brand-lockup" data-compact={compact || undefined}>
       <span className="brand-mark">
-        <img src="/ou-ping-logo.png" width="42" height="42" alt="" />
+        <img src="/icon.svg" width="42" height="42" alt="" />
       </span>
       <span className="brand-copy">
-        <strong>OU PING</strong>
-        <small>欧记分流检测</small>
+        <strong>One Ping</strong>
       </span>
     </span>
   );
@@ -163,7 +162,7 @@ export function AppLayout() {
           </Tabs.Content>
         </AnimatedSegmentedTabs>
         <footer className="app-footer">
-          © {new Date().getFullYear()} OU PING · 欧记分流检测 ·{" "}
+          © {new Date().getFullYear()} One Ping ·{" "}
           <UnderlineHover asChild>
             <a
               href="https://github.com/zhihui-hu/one-ip"

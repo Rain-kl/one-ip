@@ -121,7 +121,7 @@ export function HomePage() {
     `${mobile}-${orderedTargets.map(({ target }) => target.name).join("|")}`,
   );
   useEffect(() => {
-    document.title = "OU PING · 欧记分流检测";
+    document.title = "One Ping";
   }, []);
   const probes = useQueries({
     queries: [

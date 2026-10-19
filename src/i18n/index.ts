@@ -53,7 +53,7 @@ export function setLocale(next: Locale) {
 
 export function initializeLocale() {
   document.documentElement.lang = locale;
-  document.title = "OU PING · 欧记分流检测";
+  document.title = "One Ping";
   const description = document.querySelector('meta[name="description"]');
   if (description)
     description.setAttribute(

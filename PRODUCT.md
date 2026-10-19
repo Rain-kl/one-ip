@@ -15,14 +15,14 @@ service-status diagnostics.
 
 ## Product Purpose
 
-OU PING provides one place to inspect public IP identity, routing differences,
+One Ping provides one place to inspect public IP identity, routing differences,
 network reachability, DNS/CDN behavior, browser exposure, AI access, and public
 service status. Success means the current network state is understandable at a
 glance and deeper checks remain one action away.
 
 ## Positioning
 
-Unlike a single-source IP lookup, OU PING compares the browser's observed
+Unlike a single-source IP lookup, One Ping compares the browser's observed
 network exits and connects those results to practical diagnostic tools without
 inventing an overall account-safety verdict.
 
@@ -44,10 +44,9 @@ capability, and third-party availability.
 
 ## Brand Commitments
 
-- Product name: `OU PING`.
-- Chinese name: `欧记分流检测`.
-- Primary domain: `seekping.com`.
-- The user-provided black-and-white wide-eyed cat image is the brand mark.
+- Product name: `One Ping`.
+- Primary domain: `io0.cc`.
+- The original blue IP mark from the upstream One IP repository is the brand icon.
 - The supplied Gemini observatory mock establishes the desired direction:
   focused network instrumentation, prominent dual-exit information, dark-mode
   authority, and green status signals. Its fabricated data and decorative

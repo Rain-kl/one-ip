@@ -39,7 +39,7 @@ export function PageHeading({
   privacy?: boolean;
 }) {
   useEffect(() => {
-    document.title = `${title} · OU PING`;
+    document.title = `${title} · One Ping`;
   }, [title]);
   return (
     <>

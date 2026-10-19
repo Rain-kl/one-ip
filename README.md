@@ -1,6 +1,6 @@
-<img src="public/ou-ping-logo.png" alt="OU PING Logo" width="96" height="96" />
+<img src="public/icon.svg" alt="One Ping logo" width="96" height="96" />
 
-# OU PING · 欧记分流检测
+# One Ping
 
 <p align="left">
   <img src="https://img.shields.io/badge/React-19-282C34?logo=react&amp;logoColor=61DAFB" alt="React 19" />
@@ -23,7 +23,7 @@
 
 **中文** · [English](README.en.md)
 
-[在线体验](https://seekping.com/) · [本站源码](https://github.com/cshaizhihao/one-ip) · [上游项目](https://github.com/zhihui-hu/one-ip)
+[在线体验](https://io0.cc/) · [本站源码](https://github.com/cshaizhihao/one-ip) · [上游项目](https://github.com/zhihui-hu/one-ip)
 
 点击下方按钮，一键部署到 Cloudflare。
 
@@ -67,14 +67,14 @@ Workers Builds 会在 `main` 收到提交时构建和部署。上方按钮使用
 
 ```bash
 # 当前请求的公网出口 IP，终端文本
-curl -fsS 'https://seekping.com/api/ip/health?format=text'
+curl -fsS 'https://io0.cc/api/ip/health?format=text'
 
 # 默认返回 JSON，便于脚本处理
-curl -fsS 'https://seekping.com/api/ip/health'
+curl -fsS 'https://io0.cc/api/ip/health'
 
 # 指定公网 IPv4 或 IPv6
-curl -fsS 'https://seekping.com/api/ip/health?ip=1.1.1.1'
-curl -fsS 'https://seekping.com/api/ip/health?ip=2606:4700:4700::1111&format=text'
+curl -fsS 'https://io0.cc/api/ip/health?ip=1.1.1.1'
+curl -fsS 'https://io0.cc/api/ip/health?ip=2606:4700:4700::1111&format=text'
 ```
 
 自部署时替换域名。本地开发使用 `http://127.0.0.1:8787`，必须指定 `ip`。省略 `ip` 时使用 Cloudflare 识别的本次请求出口；经过代理时会查询代理出口。

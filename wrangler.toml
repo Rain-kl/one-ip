@@ -4,11 +4,11 @@ compatibility_date = "2026-09-09"
 compatibility_flags = ["nodejs_compat"]
 
 [[routes]]
-pattern = "seekping.com"
+pattern = "io0.cc"
 custom_domain = true
 
 [[routes]]
-pattern = "www.seekping.com"
+pattern = "www.io0.cc"
 custom_domain = true
 
 [assets]
